@@ -617,6 +617,168 @@
             border: none;
             background: white;
         }
+
+        /* PIN Lock */
+        .pin-section {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .dark-mode .pin-section {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .pin-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 8px;
+            outline: none;
+        }
+
+        .dark-mode .pin-input {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .pin-btn {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pin-btn.primary {
+            background: #007AFF;
+            color: white;
+        }
+
+        .pin-btn.primary:hover {
+            background: #0051D5;
+        }
+
+        .pin-btn.danger {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .pin-btn.danger:hover {
+            background: #D70015;
+        }
+
+        .pin-status {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .pin-status.success {
+            background: rgba(52, 199, 89, 0.2);
+            color: #34C759;
+        }
+
+        .pin-status.error {
+            background: rgba(255, 59, 48, 0.2);
+            color: #FF3B30;
+        }
+
+        .lock-pin-input {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pin-digit {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            font-size: 32px;
+            text-align: center;
+            color: white;
+            outline: none;
+        }
+
+        .pin-digit:focus {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .pin-error {
+            color: #FF3B30;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        .pin-key {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .pin-key:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .pin-key:active {
+            transform: scale(0.95);
+        }
+
+        .pin-display {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: white;
+            border-color: white;
+        }
     </style>
 </head>
 <body>
@@ -627,7 +789,32 @@
     <div class="lock-screen" id="lockScreen">
         <div class="lock-time" id="lockTime">12:00</div>
         <div class="lock-date" id="lockDate">Thursday, January 1</div>
-        <div class="unlock-prompt">Click anywhere to unlock</div>
+        
+        <div id="pinLockInterface" style="display: none;">
+            <div class="pin-display">
+                <div class="pin-dot" id="dot1"></div>
+                <div class="pin-dot" id="dot2"></div>
+                <div class="pin-dot" id="dot3"></div>
+                <div class="pin-dot" id="dot4"></div>
+            </div>
+            <div class="pin-keypad">
+                <div class="pin-key" onclick="enterPinDigit('1')">1</div>
+                <div class="pin-key" onclick="enterPinDigit('2')">2</div>
+                <div class="pin-key" onclick="enterPinDigit('3')">3</div>
+                <div class="pin-key" onclick="enterPinDigit('4')">4</div>
+                <div class="pin-key" onclick="enterPinDigit('5')">5</div>
+                <div class="pin-key" onclick="enterPinDigit('6')">6</div>
+                <div class="pin-key" onclick="enterPinDigit('7')">7</div>
+                <div class="pin-key" onclick="enterPinDigit('8')">8</div>
+                <div class="pin-key" onclick="enterPinDigit('9')">9</div>
+                <div class="pin-key" onclick="clearPin()">⌫</div>
+                <div class="pin-key" onclick="enterPinDigit('0')">0</div>
+                <div class="pin-key" onclick="clearPin()">✕</div>
+            </div>
+            <div class="pin-error" id="pinError"></div>
+        </div>
+        
+        <div class="unlock-prompt" id="unlockPrompt">Click anywhere to unlock</div>
     </div>
 
     <!-- Desktop -->
@@ -783,6 +970,23 @@
                         <div class="color-option" style="background: #BF5AF2;" onclick="changeAccentColor(this, '#BF5AF2')"></div>
                     </div>
                 </div>
+
+                <div class="settings-section">
+                    <h3>🔒 Security</h3>
+                    <div class="pin-section">
+                        <div id="noPinSection">
+                            <p style="margin-bottom: 12px; font-size: 14px;">Create a 4-digit PIN to lock your DragonOS</p>
+                            <input type="password" class="pin-input" id="newPinInput" placeholder="Enter 4-digit PIN" maxlength="4" inputmode="numeric">
+                            <input type="password" class="pin-input" id="confirmPinInput" placeholder="Confirm PIN" maxlength="4" inputmode="numeric">
+                            <button class="pin-btn primary" onclick="createPin()">Create PIN Lock</button>
+                            <div id="pinCreateStatus"></div>
+                        </div>
+                        <div id="hasPinSection" style="display: none;">
+                            <div class="pin-status success">✓ PIN Lock is enabled</div>
+                            <button class="pin-btn danger" onclick="removePin()">Remove PIN Lock</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -823,6 +1027,88 @@
         let activeTabId = null;
         let tabIdCounter = 0;
 
+        // PIN state
+        let userPin = null;
+        let enteredPin = '';
+
+        // Load saved settings
+        function loadSettings() {
+            const saved = localStorage.getItem('dragonOSSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                isDarkMode = settings.isDarkMode || false;
+                currentAccentColor = settings.accentColor || '#007AFF';
+                lightWallpaper = settings.lightWallpaper || lightWallpaper;
+                darkWallpaper = settings.darkWallpaper || darkWallpaper;
+                userPin = settings.pin || null;
+
+                // Apply settings
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('darkModeToggle').textContent = '☀️';
+                }
+                document.querySelector('.wallpaper.light').src = lightWallpaper;
+                document.querySelector('.wallpaper.dark').src = darkWallpaper;
+                document.documentElement.style.setProperty('--accent-color', currentAccentColor);
+
+                // Update UI
+                updateWallpaperSelection();
+                updateColorSelection();
+                updatePinUI();
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                isDarkMode,
+                accentColor: currentAccentColor,
+                lightWallpaper,
+                darkWallpaper,
+                pin: userPin
+            };
+            localStorage.setItem('dragonOSSettings', JSON.stringify(settings));
+        }
+
+        function updateWallpaperSelection() {
+            document.querySelectorAll('.wallpaper-option').forEach(el => {
+                if (el.dataset.light === lightWallpaper && el.dataset.dark === darkWallpaper) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        function updateColorSelection() {
+            document.querySelectorAll('.color-option').forEach(el => {
+                const color = el.style.background;
+                if (color === currentAccentColor || rgbToHex(color) === currentAccentColor) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            if (!result) return rgb;
+            return '#' + result.map(x => parseInt(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        function updatePinUI() {
+            if (userPin) {
+                document.getElementById('noPinSection').style.display = 'none';
+                document.getElementById('hasPinSection').style.display = 'block';
+            } else {
+                document.getElementById('noPinSection').style.display = 'block';
+                document.getElementById('hasPinSection').style.display = 'none';
+            }
+        }
+
+        // Initialize on load
+        loadSettings();
+
         // Update time
         function updateTime() {
             const now = new Date();
@@ -842,12 +1128,37 @@
             document.getElementById('lockScreen').classList.remove('hidden');
             document.getElementById('desktop').classList.remove('visible');
             document.getElementById('startMenu').classList.remove('visible');
+            
+            // Show PIN interface if PIN is set
+            if (userPin) {
+                document.getElementById('pinLockInterface').style.display = 'block';
+                document.getElementById('unlockPrompt').style.display = 'none';
+                enteredPin = '';
+                updatePinDots();
+            } else {
+                document.getElementById('pinLockInterface').style.display = 'none';
+                document.getElementById('unlockPrompt').style.display = 'block';
+            }
+        }
+
+        function unlockScreen() {
+            document.getElementById('lockScreen').classList.add('hidden');
+            document.getElementById('desktop').classList.add('visible');
         }
 
         // Lock screen unlock
-        document.getElementById('lockScreen').addEventListener('click', function() {
-            this.classList.add('hidden');
-            document.getElementById('desktop').classList.add('visible');
+        document.getElementById('lockScreen').addEventListener('click', function(e) {
+            // Only unlock if clicking on the lock screen itself and no PIN is set
+            if (!userPin) {
+                unlockScreen();
+            }
+        });
+
+        document.getElementById('unlockPrompt').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!userPin) {
+                unlockScreen();
+            }
         });
 
         // Dragon menu toggle
@@ -878,6 +1189,7 @@
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('dark-mode');
             this.textContent = isDarkMode ? '☀️' : '🌙';
+            saveSettings();
         });
 
         // Window management
@@ -925,6 +1237,8 @@
             
             document.querySelector('.wallpaper.light').src = lightWallpaper;
             document.querySelector('.wallpaper.dark').src = darkWallpaper;
+            
+            saveSettings();
         }
 
         function changeAccentColor(element, color) {
@@ -934,6 +1248,89 @@
             
             // Apply accent color to various UI elements
             document.documentElement.style.setProperty('--accent-color', color);
+            
+            saveSettings();
+        }
+
+        // PIN functions
+        function createPin() {
+            const newPin = document.getElementById('newPinInput').value;
+            const confirmPin = document.getElementById('confirmPinInput').value;
+            const statusEl = document.getElementById('pinCreateStatus');
+
+            if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+                statusEl.innerHTML = '<div class="pin-status error">PIN must be exactly 4 digits</div>';
+                return;
+            }
+
+            if (newPin !== confirmPin) {
+                statusEl.innerHTML = '<div class="pin-status error">PINs do not match</div>';
+                return;
+            }
+
+            userPin = newPin;
+            saveSettings();
+            updatePinUI();
+
+            document.getElementById('newPinInput').value = '';
+            document.getElementById('confirmPinInput').value = '';
+            statusEl.innerHTML = '<div class="pin-status success">✓ PIN created successfully</div>';
+            
+            setTimeout(() => {
+                statusEl.innerHTML = '';
+            }, 3000);
+        }
+
+        function removePin() {
+            if (confirm('Are you sure you want to remove PIN lock?')) {
+                userPin = null;
+                saveSettings();
+                updatePinUI();
+            }
+        }
+
+        function enterPinDigit(digit) {
+            if (enteredPin.length < 4) {
+                enteredPin += digit;
+                updatePinDots();
+                
+                if (enteredPin.length === 4) {
+                    checkPin();
+                }
+            }
+        }
+
+        function clearPin() {
+            enteredPin = '';
+            updatePinDots();
+            document.getElementById('pinError').textContent = '';
+        }
+
+        function updatePinDots() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById('dot' + i);
+                if (i <= enteredPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+        }
+
+        function checkPin() {
+            if (enteredPin === userPin) {
+                unlockScreen();
+                enteredPin = '';
+                updatePinDots();
+                document.getElementById('pinError').textContent = '';
+            } else {
+                document.getElementById('pinError').textContent = 'Incorrect PIN';
+                setTimeout(() => {
+                    enteredPin = '';
+                    updatePinDots();
+                    document.getElementById('pinError').textContent = '';
+                }, 1000);
+            }
         }
 
         // Browser functions
