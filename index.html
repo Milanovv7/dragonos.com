@@ -342,6 +342,7 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         .dark-mode .window {
@@ -351,6 +352,20 @@
 
         .window.visible {
             display: flex;
+        }
+
+        .window.minimized {
+            transform: scale(0) translateY(100vh);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .window.maximized {
+            width: calc(100vw - 20px) !important;
+            height: calc(100vh - 52px) !important;
+            top: 10px !important;
+            left: 10px !important;
+            border-radius: 0;
         }
 
         .window-header {
@@ -1015,6 +1030,7 @@
     <!-- Desktop -->
     <div class="desktop" id="desktop">
         <!-- Top Bar -->
+        <!-- Top Bar -->
         <div class="top-bar">
             <div class="top-bar-left">
                 <div class="dragon-menu" id="dragonMenu">🐉</div>
@@ -1099,13 +1115,16 @@
             <div class="dock-item" onclick="openWindow('music')" title="Music">🎵</div>
         </div>
 
+        <!-- Minimized Windows Dock -->
+        <div class="dock-minimized-windows" id="minimizedDock" style="display: none;"></div>
+
         <!-- Windows -->
         <div class="window" id="finderWindow" style="top: 100px; left: 200px;">
             <div class="window-header">
                 <div class="window-buttons">
                     <div class="window-button close" onclick="closeWindow('finder')"></div>
-                    <div class="window-button minimize"></div>
-                    <div class="window-button maximize"></div>
+                    <div class="window-button minimize" onclick="minimizeWindow('finder')"></div>
+                    <div class="window-button maximize" onclick="maximizeWindow('finder')"></div>
                 </div>
                 <div class="window-title">Finder</div>
                 <div style="width: 60px;"></div>
@@ -1128,8 +1147,8 @@
             <div class="window-header">
                 <div class="window-buttons">
                     <div class="window-button close" onclick="closeWindow('settings')"></div>
-                    <div class="window-button minimize"></div>
-                    <div class="window-button maximize"></div>
+                    <div class="window-button minimize" onclick="minimizeWindow('settings')"></div>
+                    <div class="window-button maximize" onclick="maximizeWindow('settings')"></div>
                 </div>
                 <div class="window-title">Settings</div>
                 <div style="width: 60px;"></div>
@@ -1214,8 +1233,8 @@
             <div class="window-header">
                 <div class="window-buttons">
                     <div class="window-button close" onclick="closeWindow('calendar')"></div>
-                    <div class="window-button minimize"></div>
-                    <div class="window-button maximize"></div>
+                    <div class="window-button minimize" onclick="minimizeWindow('calendar')"></div>
+                    <div class="window-button maximize" onclick="maximizeWindow('calendar')"></div>
                 </div>
                 <div class="window-title">Calendar</div>
                 <div style="width: 60px;"></div>
@@ -1235,8 +1254,8 @@
             <div class="window-header">
                 <div class="window-buttons">
                     <div class="window-button close" onclick="closeWindow('safari')"></div>
-                    <div class="window-button minimize"></div>
-                    <div class="window-button maximize"></div>
+                    <div class="window-button minimize" onclick="minimizeWindow('safari')"></div>
+                    <div class="window-button maximize" onclick="maximizeWindow('safari')"></div>
                 </div>
                 <div class="window-title">Browser</div>
                 <div style="width: 60px;"></div>
@@ -1280,6 +1299,10 @@
         // Battery API
         let batteryManager = null;
 
+        // Minimized windows tracking
+        let minimizedWindows = new Set();
+        let windowStates = {}; // Store original position and size
+
         // Load saved settings
         function loadSettings() {
             const saved = localStorage.getItem('dragonOSSettings');
@@ -1290,7 +1313,7 @@
                     currentAccentColor = settings.accentColor || '#007AFF';
                     lightWallpaper = settings.lightWallpaper || lightWallpaper;
                     darkWallpaper = settings.darkWallpaper || darkWallpaper;
-                    userPin = settings.pin || null;
+                    userPin = settings.pin !== undefined ? settings.pin : null;
                     use24Hour = settings.use24Hour || false;
 
                     // Apply settings
@@ -1309,6 +1332,8 @@
                     updateTimeFormatToggle();
                 } catch (e) {
                     console.error('Error loading settings:', e);
+                    // Reset to defaults on error
+                    userPin = null;
                 }
             }
         }
@@ -1428,6 +1453,8 @@
                 document.getElementById('unlockPrompt').style.display = 'none';
                 enteredPin = '';
                 updatePinDots();
+                // Focus on lock screen for keyboard input
+                document.getElementById('lockScreen').focus();
             } else {
                 document.getElementById('pinLockInterface').style.display = 'none';
                 document.getElementById('unlockPrompt').style.display = 'block';
@@ -1437,6 +1464,9 @@
         function unlockScreen() {
             document.getElementById('lockScreen').classList.add('hidden');
             document.getElementById('desktop').classList.add('visible');
+            enteredPin = '';
+            updatePinDots();
+            document.getElementById('pinError').textContent = '';
         }
 
         // Lock screen unlock
@@ -1451,6 +1481,23 @@
             e.stopPropagation();
             if (!userPin) {
                 unlockScreen();
+            }
+        });
+
+        // Keyboard support for PIN entry
+        document.addEventListener('keydown', function(e) {
+            const lockScreen = document.getElementById('lockScreen');
+            if (!lockScreen.classList.contains('hidden') && userPin) {
+                if (e.key >= '0' && e.key <= '9') {
+                    e.preventDefault();
+                    enterPinDigit(e.key);
+                } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                    e.preventDefault();
+                    clearPin();
+                } else if (e.key === 'Enter' && enteredPin.length === 4) {
+                    e.preventDefault();
+                    checkPin();
+                }
             }
         });
 
@@ -1539,7 +1586,88 @@
             const win = document.getElementById(windowName + 'Window');
             if (win) {
                 win.classList.remove('visible');
+                minimizedWindows.delete(windowName);
+                updateMinimizedDock();
             }
+        }
+
+        function minimizeWindow(windowName) {
+            const win = document.getElementById(windowName + 'Window');
+            if (win) {
+                // Store original state if not maximized
+                if (!win.classList.contains('maximized')) {
+                    windowStates[windowName] = {
+                        width: win.style.width,
+                        height: win.style.height,
+                        top: win.style.top,
+                        left: win.style.left
+                    };
+                }
+                win.classList.add('minimized');
+                minimizedWindows.add(windowName);
+                updateMinimizedDock();
+            }
+        }
+
+        function restoreWindow(windowName) {
+            const win = document.getElementById(windowName + 'Window');
+            if (win) {
+                win.classList.remove('minimized');
+                minimizedWindows.delete(windowName);
+                updateMinimizedDock();
+            }
+        }
+
+        function maximizeWindow(windowName) {
+            const win = document.getElementById(windowName + 'Window');
+            if (win) {
+                if (win.classList.contains('maximized')) {
+                    // Restore to original size
+                    win.classList.remove('maximized');
+                    if (windowStates[windowName]) {
+                        win.style.width = windowStates[windowName].width;
+                        win.style.height = windowStates[windowName].height;
+                        win.style.top = windowStates[windowName].top;
+                        win.style.left = windowStates[windowName].left;
+                    }
+                } else {
+                    // Store original state before maximizing
+                    windowStates[windowName] = {
+                        width: win.style.width,
+                        height: win.style.height,
+                        top: win.style.top,
+                        left: win.style.left
+                    };
+                    win.classList.add('maximized');
+                }
+            }
+        }
+
+        function updateMinimizedDock() {
+            const dock = document.getElementById('minimizedDock');
+            dock.innerHTML = '';
+            
+            if (minimizedWindows.size === 0) {
+                dock.style.display = 'none';
+                return;
+            }
+            
+            dock.style.display = 'flex';
+            
+            const windowTitles = {
+                finder: '📁 Finder',
+                settings: '⚙️ Settings',
+                safari: '🧭 Browser',
+                calendar: '📅 Calendar'
+            };
+            
+            minimizedWindows.forEach(windowName => {
+                const item = document.createElement('div');
+                item.className = 'minimized-window-item';
+                item.textContent = windowTitles[windowName] || windowName;
+                item.onclick = () => restoreWindow(windowName);
+                dock.appendChild(item);
+            });
         }
 
         // Settings functions
@@ -1852,6 +1980,13 @@
         document.addEventListener('mousedown', function(e) {
             if (e.target.classList.contains('window-header') || e.target.classList.contains('window-title')) {
                 draggedWindow = e.target.closest('.window');
+                
+                // Don't drag if maximized
+                if (draggedWindow.classList.contains('maximized')) {
+                    draggedWindow = null;
+                    return;
+                }
+                
                 const rect = draggedWindow.getBoundingClientRect();
                 offsetX = e.clientX - rect.left;
                 offsetY = e.clientY - rect.top;
@@ -1859,7 +1994,7 @@
         });
 
         document.addEventListener('mousemove', function(e) {
-            if (draggedWindow) {
+            if (draggedWindow && !draggedWindow.classList.contains('maximized')) {
                 draggedWindow.style.left = (e.clientX - offsetX) + 'px';
                 draggedWindow.style.top = (e.clientY - offsetY) + 'px';
             }
