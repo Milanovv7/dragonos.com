@@ -618,6 +618,201 @@
             background: white;
         }
 
+        /* Start Menu Fullscreen */
+        .start-menu.fullscreen {
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            border-radius: 0;
+            max-width: none;
+        }
+
+        .start-menu.fullscreen .app-grid {
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+        }
+
+        .start-menu.fullscreen .app-item {
+            padding: 20px;
+        }
+
+        .start-menu.fullscreen .app-icon {
+            width: 64px;
+            height: 64px;
+            font-size: 32px;
+        }
+
+        .start-menu.fullscreen .app-name {
+            font-size: 14px;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .expand-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .expand-btn:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode .expand-btn {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .expand-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Mini Calendar */
+        .mini-calendar {
+            position: absolute;
+            top: 40px;
+            right: 16px;
+            width: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 200;
+        }
+
+        .dark-mode .mini-calendar {
+            background: rgba(40, 40, 40, 0.95);
+            color: white;
+        }
+
+        .mini-calendar.visible {
+            display: block;
+            animation: menuSlide 0.2s ease;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .dark-mode .calendar-nav {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .calendar-day-name {
+            font-size: 12px;
+            opacity: 0.6;
+            padding: 8px 0;
+            font-weight: 600;
+        }
+
+        .calendar-day {
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-day.today {
+            background: var(--accent-color, #007AFF);
+            color: white;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        /* Time Format Toggle */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .toggle-switch {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark-mode .toggle-switch:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-slider {
+            width: 50px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-slider.active {
+            background: var(--accent-color, #007AFF);
+        }
+
+        .toggle-knob {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .toggle-slider.active .toggle-knob {
+            left: 24px;
+        }
+
         /* PIN Lock */
         .pin-section {
             margin-top: 20px;
@@ -831,48 +1026,61 @@
             <div class="top-bar-right">
                 <div class="top-bar-icon" id="searchIcon">🔍</div>
                 <div class="top-bar-icon" id="darkModeToggle">🌙</div>
-                <div class="top-bar-icon" id="battery">🔋 100%</div>
-                <div class="top-bar-icon" id="topTime">12:00</div>
+                <div class="top-bar-icon" id="battery">🔋 <span id="batteryLevel">100%</span></div>
+                <div class="top-bar-icon" id="topTime" style="cursor: pointer;">12:00</div>
             </div>
+        </div>
+
+        <!-- Mini Calendar -->
+        <div class="mini-calendar" id="miniCalendar">
+            <div class="calendar-header">
+                <button class="calendar-nav" onclick="changeMonth(-1)">←</button>
+                <div id="calendarMonthYear">January 2026</div>
+                <button class="calendar-nav" onclick="changeMonth(1)">→</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
         </div>
 
         <!-- Start Menu -->
         <div class="start-menu" id="startMenu">
-            <input type="text" class="search-box" placeholder="Search DragonOS...">
-            <div class="app-grid">
-                <div class="app-item" onclick="openWindow('finder')">
+            <div class="menu-header">
+                <input type="text" class="search-box" id="searchBox" placeholder="Search DragonOS...">
+                <button class="expand-btn" id="expandBtn" onclick="toggleFullscreen()">⛶</button>
+            </div>
+            <div class="app-grid" id="appGrid">
+                <div class="app-item" data-name="Finder" onclick="openWindow('finder')">
                     <div class="app-icon">📁</div>
                     <div class="app-name">Finder</div>
                 </div>
-                <div class="app-item" onclick="openWindow('safari')">
+                <div class="app-item" data-name="Browser" onclick="openWindow('safari')">
                     <div class="app-icon">🧭</div>
                     <div class="app-name">Browser</div>
                 </div>
-                <div class="app-item" onclick="openWindow('mail')">
+                <div class="app-item" data-name="Mail" onclick="openWindow('mail')">
                     <div class="app-icon">✉️</div>
                     <div class="app-name">Mail</div>
                 </div>
-                <div class="app-item" onclick="openWindow('calendar')">
+                <div class="app-item" data-name="Calendar" onclick="openWindow('calendar')">
                     <div class="app-icon">📅</div>
                     <div class="app-name">Calendar</div>
                 </div>
-                <div class="app-item" onclick="openWindow('photos')">
+                <div class="app-item" data-name="Photos" onclick="openWindow('photos')">
                     <div class="app-icon">🖼️</div>
                     <div class="app-name">Photos</div>
                 </div>
-                <div class="app-item" onclick="openWindow('music')">
+                <div class="app-item" data-name="Music" onclick="openWindow('music')">
                     <div class="app-icon">🎵</div>
                     <div class="app-name">Music</div>
                 </div>
-                <div class="app-item" onclick="openWindow('settings')">
+                <div class="app-item" data-name="Settings" onclick="openWindow('settings')">
                     <div class="app-icon">⚙️</div>
                     <div class="app-name">Settings</div>
                 </div>
-                <div class="app-item" onclick="openWindow('terminal')">
+                <div class="app-item" data-name="Terminal" onclick="openWindow('terminal')">
                     <div class="app-icon">⌨️</div>
                     <div class="app-name">Terminal</div>
                 </div>
-                <div class="app-item" onclick="openWindow('store')">
+                <div class="app-item" data-name="App Store" onclick="openWindow('store')">
                     <div class="app-icon">🛍️</div>
                     <div class="app-name">App Store</div>
                 </div>
@@ -987,6 +1195,38 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="settings-section">
+                    <h3>🕐 Time & Date</h3>
+                    <div class="toggle-switch" onclick="toggle24Hour()">
+                        <div>Use 24-hour time</div>
+                        <div style="flex: 1;"></div>
+                        <div class="toggle-slider" id="timeFormatToggle">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Window -->
+        <div class="window" id="calendarWindow" style="top: 120px; left: 350px; width: 350px; height: 450px;">
+            <div class="window-header">
+                <div class="window-buttons">
+                    <div class="window-button close" onclick="closeWindow('calendar')"></div>
+                    <div class="window-button minimize"></div>
+                    <div class="window-button maximize"></div>
+                </div>
+                <div class="window-title">Calendar</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="window-content" style="padding: 12px;">
+                <div class="calendar-header">
+                    <button class="calendar-nav" onclick="changeMonth(-1)">←</button>
+                    <div id="calendarWindowMonthYear" style="font-weight: 600; font-size: 16px;">January 2026</div>
+                    <button class="calendar-nav" onclick="changeMonth(1)">→</button>
+                </div>
+                <div class="calendar-grid" id="calendarWindowGrid" style="margin-top: 16px;"></div>
             </div>
         </div>
 
@@ -1031,30 +1271,45 @@
         let userPin = null;
         let enteredPin = '';
 
+        // Calendar state
+        let currentCalendarDate = new Date();
+
+        // Time format (true = 24h, false = 12h)
+        let use24Hour = false;
+
+        // Battery API
+        let batteryManager = null;
+
         // Load saved settings
         function loadSettings() {
             const saved = localStorage.getItem('dragonOSSettings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                isDarkMode = settings.isDarkMode || false;
-                currentAccentColor = settings.accentColor || '#007AFF';
-                lightWallpaper = settings.lightWallpaper || lightWallpaper;
-                darkWallpaper = settings.darkWallpaper || darkWallpaper;
-                userPin = settings.pin || null;
+                try {
+                    const settings = JSON.parse(saved);
+                    isDarkMode = settings.isDarkMode || false;
+                    currentAccentColor = settings.accentColor || '#007AFF';
+                    lightWallpaper = settings.lightWallpaper || lightWallpaper;
+                    darkWallpaper = settings.darkWallpaper || darkWallpaper;
+                    userPin = settings.pin || null;
+                    use24Hour = settings.use24Hour || false;
 
-                // Apply settings
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                    document.getElementById('darkModeToggle').textContent = '☀️';
+                    // Apply settings
+                    if (isDarkMode) {
+                        document.body.classList.add('dark-mode');
+                        document.getElementById('darkModeToggle').textContent = '☀️';
+                    }
+                    document.querySelector('.wallpaper.light').src = lightWallpaper;
+                    document.querySelector('.wallpaper.dark').src = darkWallpaper;
+                    document.documentElement.style.setProperty('--accent-color', currentAccentColor);
+
+                    // Update UI
+                    updateWallpaperSelection();
+                    updateColorSelection();
+                    updatePinUI();
+                    updateTimeFormatToggle();
+                } catch (e) {
+                    console.error('Error loading settings:', e);
                 }
-                document.querySelector('.wallpaper.light').src = lightWallpaper;
-                document.querySelector('.wallpaper.dark').src = darkWallpaper;
-                document.documentElement.style.setProperty('--accent-color', currentAccentColor);
-
-                // Update UI
-                updateWallpaperSelection();
-                updateColorSelection();
-                updatePinUI();
             }
         }
 
@@ -1064,7 +1319,8 @@
                 accentColor: currentAccentColor,
                 lightWallpaper,
                 darkWallpaper,
-                pin: userPin
+                pin: userPin,
+                use24Hour
             };
             localStorage.setItem('dragonOSSettings', JSON.stringify(settings));
         }
@@ -1106,13 +1362,50 @@
             }
         }
 
+        function updateTimeFormatToggle() {
+            const toggle = document.getElementById('timeFormatToggle');
+            if (use24Hour) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+
         // Initialize on load
         loadSettings();
+
+        // Initialize battery
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(function(battery) {
+                batteryManager = battery;
+                updateBatteryStatus();
+                
+                battery.addEventListener('levelchange', updateBatteryStatus);
+                battery.addEventListener('chargingchange', updateBatteryStatus);
+            });
+        } else {
+            document.getElementById('batteryLevel').textContent = 'N/A';
+        }
+
+        function updateBatteryStatus() {
+            if (batteryManager) {
+                const level = Math.floor(batteryManager.level * 100);
+                const charging = batteryManager.charging;
+                document.getElementById('batteryLevel').textContent = (charging ? '⚡' : '') + level + '%';
+            }
+        }
 
         // Update time
         function updateTime() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+            let timeStr;
+            
+            if (use24Hour) {
+                timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            } else {
+                timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+            
             const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
             
             document.getElementById('lockTime').textContent = timeStr;
@@ -1175,12 +1468,30 @@
             menu.classList.toggle('visible');
         });
 
+        // Time icon opens mini calendar
+        document.getElementById('topTime').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const calendar = document.getElementById('miniCalendar');
+            calendar.classList.toggle('visible');
+            if (calendar.classList.contains('visible')) {
+                renderCalendar('mini');
+            }
+        });
+
         // Close menu when clicking outside
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('startMenu');
             const dragonMenu = document.getElementById('dragonMenu');
-            if (!menu.contains(e.target) && !dragonMenu.contains(e.target)) {
+            const searchIcon = document.getElementById('searchIcon');
+            const calendar = document.getElementById('miniCalendar');
+            const timeIcon = document.getElementById('topTime');
+            
+            if (!menu.contains(e.target) && !dragonMenu.contains(e.target) && !searchIcon.contains(e.target)) {
                 menu.classList.remove('visible');
+            }
+            
+            if (!calendar.contains(e.target) && !timeIcon.contains(e.target)) {
+                calendar.classList.remove('visible');
             }
         });
 
@@ -1203,11 +1514,15 @@
                 if (windowName === 'safari' && tabs.length === 0) {
                     createNewTab();
                 }
+                
+                // Initialize calendar when opened
+                if (windowName === 'calendar') {
+                    renderCalendar('window');
+                }
             } else {
                 // Open system default apps for non-implemented apps
                 const appMessages = {
                     'mail': 'Opening default Mail app...',
-                    'calendar': 'Opening default Calendar app...',
                     'photos': 'Opening default Photos app...',
                     'music': 'Opening default Music app...',
                     'terminal': 'Opening default Terminal app...',
@@ -1251,6 +1566,36 @@
             
             saveSettings();
         }
+
+        function toggle24Hour() {
+            use24Hour = !use24Hour;
+            updateTimeFormatToggle();
+            updateTime();
+            saveSettings();
+        }
+
+        // Start Menu functions
+        function toggleFullscreen() {
+            const menu = document.getElementById('startMenu');
+            menu.classList.toggle('fullscreen');
+            const btn = document.getElementById('expandBtn');
+            btn.textContent = menu.classList.contains('fullscreen') ? '⛶' : '⛶';
+        }
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const apps = document.querySelectorAll('.app-item');
+            
+            apps.forEach(app => {
+                const name = app.getAttribute('data-name').toLowerCase();
+                if (name.includes(query)) {
+                    app.style.display = 'flex';
+                } else {
+                    app.style.display = 'none';
+                }
+            });
+        });
 
         // PIN functions
         function createPin() {
