@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .wallpaper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+        }
+
+        body.dark-mode .wallpaper.light {
+            opacity: 0;
+        }
+
+        body:not(.dark-mode) .wallpaper.dark {
+            opacity: 0;
+        }
+
+        /* Lock Screen */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .lock-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .lock-time {
+            font-size: 96px;
+            font-weight: 200;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .lock-date {
+            font-size: 32px;
+            font-weight: 300;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 60px;
+        }
+
+        .unlock-prompt {
+            color: white;
+            font-size: 18px;
+            margin-top: 40px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Desktop */
+        .desktop {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .desktop.visible {
+            opacity: 1;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(30px) saturate(180%);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            color: white;
+            font-size: 14px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .top-bar {
+            background: rgba(30, 30, 30, 0.7);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .dragon-menu {
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .dragon-menu:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-text {
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .menu-text:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .top-bar-icon {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-bar-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Start Menu */
+        .start-menu {
+            position: absolute;
+            top: 40px;
+            left: 16px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 200;
+        }
+
+        .dark-mode .start-menu {
+            background: rgba(40, 40, 40, 0.9);
+            color: white;
+        }
+
+        .start-menu.visible {
+            display: block;
+            animation: menuSlide 0.2s ease;
+        }
+
+        @keyframes menuSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            margin-bottom: 12px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .dark-mode .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .app-item:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .app-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .app-name {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .lock-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lock-button:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode .lock-button {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .lock-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Dock */
+        .dock {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 16px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        .dark-mode .dock {
+            background: rgba(40, 40, 40, 0.7);
+        }
+
+        .dock-item {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .dock-item:hover {
+            transform: scale(1.2) translateY(-8px);
+        }
+
+        /* Window */
+        .window {
+            position: absolute;
+            width: 600px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dark-mode .window {
+            background: rgba(40, 40, 40, 0.95);
+            color: white;
+        }
+
+        .window.visible {
+            display: flex;
+        }
+
+        .window-header {
+            height: 40px;
+            background: rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: move;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .window-header {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .window-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .window-button.close {
+            background: #ff5f56;
+        }
+
+        .window-button.minimize {
+            background: #ffbd2e;
+        }
+
+        .window-button.maximize {
+            background: #27c93f;
+        }
+
+        .window-title {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        /* Settings Panel */
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .wallpaper-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .wallpaper-option {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            object-fit: cover;
+        }
+
+        .wallpaper-option:hover {
+            transform: scale(1.05);
+        }
+
+        .wallpaper-option.active {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+        }
+
+        .color-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: white;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Browser */
+        .browser-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .browser-toolbar {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .browser-btn {
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .browser-btn:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode .browser-btn {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .browser-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .browser-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .url-bar {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .dark-mode .url-bar {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .dark-mode .tabs-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            min-width: 150px;
+            max-width: 200px;
+            transition: background 0.2s;
+        }
+
+        .tab:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .tab.active {
+            background: rgba(0, 122, 255, 0.2);
+        }
+
+        .dark-mode .tab {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark-mode .tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .tab.active {
+            background: rgba(0, 122, 255, 0.3);
+        }
+
+        .tab-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-close {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+        }
+
+        .new-tab-btn {
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .new-tab-btn:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode .new-tab-btn {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .new-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <img class="wallpaper light" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop" alt="Light Wallpaper">
+    <img class="wallpaper dark" src="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&h=1080&fit=crop" alt="Dark Wallpaper">
+
+    <!-- Lock Screen -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-time" id="lockTime">12:00</div>
+        <div class="lock-date" id="lockDate">Thursday, January 1</div>
+        <div class="unlock-prompt">Click anywhere to unlock</div>
+    </div>
+
+    <!-- Desktop -->
+    <div class="desktop" id="desktop">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <div class="dragon-menu" id="dragonMenu">🐉</div>
+                <div class="menu-text">Finder</div>
+                <div class="menu-text">File</div>
+                <div class="menu-text">Edit</div>
+                <div class="menu-text">View</div>
+            </div>
+            <div class="top-bar-right">
+                <div class="top-bar-icon" id="searchIcon">🔍</div>
+                <div class="top-bar-icon" id="darkModeToggle">🌙</div>
+                <div class="top-bar-icon" id="battery">🔋 100%</div>
+                <div class="top-bar-icon" id="topTime">12:00</div>
+            </div>
+        </div>
+
+        <!-- Start Menu -->
+        <div class="start-menu" id="startMenu">
+            <input type="text" class="search-box" placeholder="Search DragonOS...">
+            <div class="app-grid">
+                <div class="app-item" onclick="openWindow('finder')">
+                    <div class="app-icon">📁</div>
+                    <div class="app-name">Finder</div>
+                </div>
+                <div class="app-item" onclick="openWindow('safari')">
+                    <div class="app-icon">🧭</div>
+                    <div class="app-name">Browser</div>
+                </div>
+                <div class="app-item" onclick="openWindow('mail')">
+                    <div class="app-icon">✉️</div>
+                    <div class="app-name">Mail</div>
+                </div>
+                <div class="app-item" onclick="openWindow('calendar')">
+                    <div class="app-icon">📅</div>
+                    <div class="app-name">Calendar</div>
+                </div>
+                <div class="app-item" onclick="openWindow('photos')">
+                    <div class="app-icon">🖼️</div>
+                    <div class="app-name">Photos</div>
+                </div>
+                <div class="app-item" onclick="openWindow('music')">
+                    <div class="app-icon">🎵</div>
+                    <div class="app-name">Music</div>
+                </div>
+                <div class="app-item" onclick="openWindow('settings')">
+                    <div class="app-icon">⚙️</div>
+                    <div class="app-name">Settings</div>
+                </div>
+                <div class="app-item" onclick="openWindow('terminal')">
+                    <div class="app-icon">⌨️</div>
+                    <div class="app-name">Terminal</div>
+                </div>
+                <div class="app-item" onclick="openWindow('store')">
+                    <div class="app-icon">🛍️</div>
+                    <div class="app-name">App Store</div>
+                </div>
+            </div>
+            <button class="lock-button" onclick="lockScreen()">
+                🔒 Lock DragonOS
+            </button>
+        </div>
+
+        <!-- Dock -->
+        <div class="dock">
+            <div class="dock-item" onclick="openWindow('finder')" title="Finder">📁</div>
+            <div class="dock-item" onclick="openWindow('safari')" title="Browser">🧭</div>
+            <div class="dock-item" onclick="openWindow('mail')" title="Mail">✉️</div>
+            <div class="dock-item" onclick="openWindow('photos')" title="Photos">🖼️</div>
+            <div class="dock-item" onclick="openWindow('music')" title="Music">🎵</div>
+        </div>
+
+        <!-- Windows -->
+        <div class="window" id="finderWindow" style="top: 100px; left: 200px;">
+            <div class="window-header">
+                <div class="window-buttons">
+                    <div class="window-button close" onclick="closeWindow('finder')"></div>
+                    <div class="window-button minimize"></div>
+                    <div class="window-button maximize"></div>
+                </div>
+                <div class="window-title">Finder</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="window-content">
+                <h2>📁 Files</h2>
+                <p>Welcome to the DragonOS Finder!</p>
+                <ul style="list-style: none; padding: 20px 0;">
+                    <li style="padding: 10px;">📄 Documents</li>
+                    <li style="padding: 10px;">🖼️ Pictures</li>
+                    <li style="padding: 10px;">🎵 Music</li>
+                    <li style="padding: 10px;">📹 Videos</li>
+                    <li style="padding: 10px;">⬇️ Downloads</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Settings Window -->
+        <div class="window" id="settingsWindow" style="top: 120px; left: 250px; width: 500px; height: 550px;">
+            <div class="window-header">
+                <div class="window-buttons">
+                    <div class="window-button close" onclick="closeWindow('settings')"></div>
+                    <div class="window-button minimize"></div>
+                    <div class="window-button maximize"></div>
+                </div>
+                <div class="window-title">Settings</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="window-content">
+                <div class="settings-section">
+                    <h3>🖼️ Wallpaper</h3>
+                    <div class="wallpaper-grid">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop" 
+                             class="wallpaper-option active" 
+                             data-light="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop"
+                             data-dark="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&h=1080&fit=crop"
+                             onclick="changeWallpaper(this)">
+                        <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=200&fit=crop" 
+                             class="wallpaper-option" 
+                             data-light="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
+                             data-dark="https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=1920&h=1080&fit=crop"
+                             onclick="changeWallpaper(this)">
+                        <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=200&fit=crop" 
+                             class="wallpaper-option" 
+                             data-light="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&h=1080&fit=crop"
+                             data-dark="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&h=1080&fit=crop"
+                             onclick="changeWallpaper(this)">
+                        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=200&fit=crop" 
+                             class="wallpaper-option" 
+                             data-light="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&h=1080&fit=crop"
+                             data-dark="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&h=1080&fit=crop"
+                             onclick="changeWallpaper(this)">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🎨 Accent Color</h3>
+                    <div class="color-grid">
+                        <div class="color-option active" style="background: #007AFF;" onclick="changeAccentColor(this, '#007AFF')"></div>
+                        <div class="color-option" style="background: #5856D6;" onclick="changeAccentColor(this, '#5856D6')"></div>
+                        <div class="color-option" style="background: #AF52DE;" onclick="changeAccentColor(this, '#AF52DE')"></div>
+                        <div class="color-option" style="background: #FF2D55;" onclick="changeAccentColor(this, '#FF2D55')"></div>
+                        <div class="color-option" style="background: #FF9500;" onclick="changeAccentColor(this, '#FF9500')"></div>
+                        <div class="color-option" style="background: #FFCC00;" onclick="changeAccentColor(this, '#FFCC00')"></div>
+                        <div class="color-option" style="background: #34C759;" onclick="changeAccentColor(this, '#34C759')"></div>
+                        <div class="color-option" style="background: #00C7BE;" onclick="changeAccentColor(this, '#00C7BE')"></div>
+                        <div class="color-option" style="background: #32ADE6;" onclick="changeAccentColor(this, '#32ADE6')"></div>
+                        <div class="color-option" style="background: #8E8E93;" onclick="changeAccentColor(this, '#8E8E93')"></div>
+                        <div class="color-option" style="background: #FF6482;" onclick="changeAccentColor(this, '#FF6482')"></div>
+                        <div class="color-option" style="background: #BF5AF2;" onclick="changeAccentColor(this, '#BF5AF2')"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Browser Window -->
+        <div class="window" id="safariWindow" style="top: 80px; left: 300px; width: 900px; height: 600px;">
+            <div class="window-header">
+                <div class="window-buttons">
+                    <div class="window-button close" onclick="closeWindow('safari')"></div>
+                    <div class="window-button minimize"></div>
+                    <div class="window-button maximize"></div>
+                </div>
+                <div class="window-title">Browser</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <div class="tabs-container" id="tabsContainer">
+                    <button class="new-tab-btn" onclick="createNewTab()" title="New Tab">+</button>
+                </div>
+                <div class="browser-toolbar">
+                    <button class="browser-btn" id="backBtn" onclick="goBack()" disabled>←</button>
+                    <button class="browser-btn" id="forwardBtn" onclick="goForward()" disabled>→</button>
+                    <button class="browser-btn" onclick="reloadPage()">⟳</button>
+                    <input type="text" class="url-bar" id="urlBar" placeholder="Enter URL or search..." onkeypress="handleUrlEnter(event)">
+                </div>
+                <div style="flex: 1; overflow: hidden; position: relative;" id="browserContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDarkMode = false;
+        let currentAccentColor = '#007AFF';
+        let lightWallpaper = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop';
+        let darkWallpaper = 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&h=1080&fit=crop';
+
+        // Browser state
+        let tabs = [];
+        let activeTabId = null;
+        let tabIdCounter = 0;
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            
+            document.getElementById('lockTime').textContent = timeStr;
+            document.getElementById('lockDate').textContent = dateStr;
+            document.getElementById('topTime').textContent = timeStr;
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Lock screen functions
+        function lockScreen() {
+            document.getElementById('lockScreen').classList.remove('hidden');
+            document.getElementById('desktop').classList.remove('visible');
+            document.getElementById('startMenu').classList.remove('visible');
+        }
+
+        // Lock screen unlock
+        document.getElementById('lockScreen').addEventListener('click', function() {
+            this.classList.add('hidden');
+            document.getElementById('desktop').classList.add('visible');
+        });
+
+        // Dragon menu toggle
+        document.getElementById('dragonMenu').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('startMenu');
+            menu.classList.toggle('visible');
+        });
+
+        // Search icon opens start menu
+        document.getElementById('searchIcon').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('startMenu');
+            menu.classList.toggle('visible');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('startMenu');
+            const dragonMenu = document.getElementById('dragonMenu');
+            if (!menu.contains(e.target) && !dragonMenu.contains(e.target)) {
+                menu.classList.remove('visible');
+            }
+        });
+
+        // Dark mode toggle
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            this.textContent = isDarkMode ? '☀️' : '🌙';
+        });
+
+        // Window management
+        function openWindow(windowName) {
+            const win = document.getElementById(windowName + 'Window');
+            if (win) {
+                win.classList.add('visible');
+                document.getElementById('startMenu').classList.remove('visible');
+                
+                // Initialize browser with first tab when opened
+                if (windowName === 'safari' && tabs.length === 0) {
+                    createNewTab();
+                }
+            } else {
+                // Open system default apps for non-implemented apps
+                const appMessages = {
+                    'mail': 'Opening default Mail app...',
+                    'calendar': 'Opening default Calendar app...',
+                    'photos': 'Opening default Photos app...',
+                    'music': 'Opening default Music app...',
+                    'terminal': 'Opening default Terminal app...',
+                    'store': 'Opening default App Store...'
+                };
+                
+                if (appMessages[windowName]) {
+                    alert(appMessages[windowName]);
+                }
+            }
+        }
+
+        function closeWindow(windowName) {
+            const win = document.getElementById(windowName + 'Window');
+            if (win) {
+                win.classList.remove('visible');
+            }
+        }
+
+        // Settings functions
+        function changeWallpaper(element) {
+            document.querySelectorAll('.wallpaper-option').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            
+            lightWallpaper = element.dataset.light;
+            darkWallpaper = element.dataset.dark;
+            
+            document.querySelector('.wallpaper.light').src = lightWallpaper;
+            document.querySelector('.wallpaper.dark').src = darkWallpaper;
+        }
+
+        function changeAccentColor(element, color) {
+            document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            currentAccentColor = color;
+            
+            // Apply accent color to various UI elements
+            document.documentElement.style.setProperty('--accent-color', color);
+        }
+
+        // Browser functions
+        function createNewTab() {
+            const tabId = tabIdCounter++;
+            const tab = {
+                id: tabId,
+                title: 'New Tab',
+                url: 'https://www.google.com',
+                history: ['https://www.google.com'],
+                currentIndex: 0
+            };
+            
+            tabs.push(tab);
+            renderTabs();
+            switchToTab(tabId);
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabsContainer');
+            const newTabBtn = container.querySelector('.new-tab-btn');
+            container.innerHTML = '';
+            container.appendChild(newTabBtn);
+            
+            tabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
+                tabEl.innerHTML = `
+                    <span class="tab-title">${tab.title}</span>
+                    <span class="tab-close" onclick="closeTab(${tab.id}, event)">✕</span>
+                `;
+                tabEl.onclick = (e) => {
+                    if (!e.target.classList.contains('tab-close')) {
+                        switchToTab(tab.id);
+                    }
+                };
+                container.appendChild(tabEl);
+            });
+        }
+
+        function switchToTab(tabId) {
+            activeTabId = tabId;
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+            
+            renderTabs();
+            document.getElementById('urlBar').value = tab.url;
+            
+            const content = document.getElementById('browserContent');
+            content.innerHTML = '';
+            
+            const iframe = document.createElement('iframe');
+            iframe.className = 'browser-frame';
+            iframe.src = tab.url;
+            iframe.style.display = 'block';
+            content.appendChild(iframe);
+            
+            updateNavigationButtons();
+        }
+
+        function closeTab(tabId, event) {
+            event.stopPropagation();
+            const index = tabs.findIndex(t => t.id === tabId);
+            if (index === -1) return;
+            
+            tabs.splice(index, 1);
+            
+            if (tabs.length === 0) {
+                document.getElementById('browserContent').innerHTML = '';
+                document.getElementById('urlBar').value = '';
+                activeTabId = null;
+            } else if (activeTabId === tabId) {
+                const newActiveTab = tabs[Math.min(index, tabs.length - 1)];
+                switchToTab(newActiveTab.id);
+            } else {
+                renderTabs();
+            }
+            
+            updateNavigationButtons();
+        }
+
+        function handleUrlEnter(event) {
+            if (event.key === 'Enter') {
+                let url = event.target.value.trim();
+                
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    if (url.includes('.')) {
+                        url = 'https://' + url;
+                    } else {
+                        url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+                    }
+                }
+                
+                navigateToUrl(url);
+            }
+        }
+
+        function navigateToUrl(url) {
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab) return;
+            
+            tab.history = tab.history.slice(0, tab.currentIndex + 1);
+            tab.history.push(url);
+            tab.currentIndex = tab.history.length - 1;
+            tab.url = url;
+            
+            const iframe = document.querySelector('#browserContent iframe');
+            if (iframe) {
+                iframe.src = url;
+            }
+            
+            document.getElementById('urlBar').value = url;
+            updateNavigationButtons();
+        }
+
+        function goBack() {
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab || tab.currentIndex <= 0) return;
+            
+            tab.currentIndex--;
+            tab.url = tab.history[tab.currentIndex];
+            
+            const iframe = document.querySelector('#browserContent iframe');
+            if (iframe) {
+                iframe.src = tab.url;
+            }
+            
+            document.getElementById('urlBar').value = tab.url;
+            updateNavigationButtons();
+        }
+
+        function goForward() {
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab || tab.currentIndex >= tab.history.length - 1) return;
+            
+            tab.currentIndex++;
+            tab.url = tab.history[tab.currentIndex];
+            
+            const iframe = document.querySelector('#browserContent iframe');
+            if (iframe) {
+                iframe.src = tab.url;
+            }
+            
+            document.getElementById('urlBar').value = tab.url;
+            updateNavigationButtons();
+        }
+
+        function reloadPage() {
+            const iframe = document.querySelector('#browserContent iframe');
+            if (iframe) {
+                iframe.src = iframe.src;
+            }
+        }
+
+        function updateNavigationButtons() {
+            const tab = tabs.find(t => t.id === activeTabId);
+            const backBtn = document.getElementById('backBtn');
+            const forwardBtn = document.getElementById('forwardBtn');
+            
+            if (!tab) {
+                backBtn.disabled = true;
+                forwardBtn.disabled = true;
+                return;
+            }
+            
+            backBtn.disabled = tab.currentIndex <= 0;
+            forwardBtn.disabled = tab.currentIndex >= tab.history.length - 1;
+        }
+
+        // Window dragging
+        let draggedWindow = null;
+        let offsetX, offsetY;
+
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.classList.contains('window-header') || e.target.classList.contains('window-title')) {
+                draggedWindow = e.target.closest('.window');
+                const rect = draggedWindow.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (draggedWindow) {
+                draggedWindow.style.left = (e.clientX - offsetX) + 'px';
+                draggedWindow.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            draggedWindow = null;
+        });
+    </script>
+</body>
+</html>
