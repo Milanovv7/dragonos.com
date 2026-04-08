@@ -975,6 +975,130 @@
         .toggle-slider.active .toggle-knob {
             left: 24px;
         }
+
+        /* Fullscreen Start Menu */
+        .fullscreen-start {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(40px);
+            z-index: 500;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .fullscreen-start.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .dark-mode .fullscreen-start {
+            background: rgba(20, 20, 20, 0.98);
+        }
+
+        .fullscreen-start-content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .fullscreen-start-sidebar {
+            width: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .fullscreen-start-main {
+            flex: 1;
+            padding: 60px 80px;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .tile-section {
+            margin-bottom: 50px;
+        }
+
+        .tile-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            max-width: 1200px;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            background: var(--accent-color, #007AFF);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .tile:active {
+            transform: scale(0.98);
+        }
+
+        .tile-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .tile-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tile.finder { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .tile.browser { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .tile.mail { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .tile.photos { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .tile.music { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .tile.settings { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .tile.web { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
     </style>
 </head>
 <body>
@@ -1095,6 +1219,77 @@
             <div class="dock-item" onclick="openWindow('mail')" title="Mail">✉️</div>
             <div class="dock-item" onclick="openWindow('photos')" title="Photos">🖼️</div>
             <div class="dock-item" onclick="openWindow('music')" title="Music">🎵</div>
+            <div class="dock-item" onclick="toggleFullscreenStart()" title="Start Menu" style="background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);">⊞</div>
+        </div>
+
+        <!-- Fullscreen Start Menu -->
+        <div class="fullscreen-start" id="fullscreenStart">
+            <div class="fullscreen-start-content">
+                <div class="fullscreen-start-sidebar">
+                    <div class="sidebar-icon" onclick="lockScreenFromFullscreen()" title="Lock">🔒</div>
+                </div>
+                <div class="fullscreen-start-main">
+                    <div class="tile-section">
+                        <div class="tile-section-title">Apps</div>
+                        <div class="tile-grid">
+                            <div class="tile finder" onclick="openWindowFromFullscreen('finder')">
+                                <div class="tile-icon">📁</div>
+                                <div class="tile-name">Finder</div>
+                            </div>
+                            <div class="tile browser" onclick="openWindowFromFullscreen('safari')">
+                                <div class="tile-icon">🧭</div>
+                                <div class="tile-name">Browser</div>
+                            </div>
+                            <div class="tile mail" onclick="openWindowFromFullscreen('mail')">
+                                <div class="tile-icon">✉️</div>
+                                <div class="tile-name">Mail</div>
+                            </div>
+                            <div class="tile photos" onclick="openWindowFromFullscreen('photos')">
+                                <div class="tile-icon">🖼️</div>
+                                <div class="tile-name">Photos</div>
+                            </div>
+                            <div class="tile music" onclick="openWindowFromFullscreen('music')">
+                                <div class="tile-icon">🎵</div>
+                                <div class="tile-name">Music</div>
+                            </div>
+                            <div class="tile settings" onclick="openWindowFromFullscreen('settings')">
+                                <div class="tile-icon">⚙️</div>
+                                <div class="tile-name">Settings</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tile-section">
+                        <div class="tile-section-title">Web</div>
+                        <div class="tile-grid">
+                            <div class="tile web" onclick="openWebsite('https://www.youtube.com')">
+                                <div class="tile-icon">📺</div>
+                                <div class="tile-name">YouTube</div>
+                            </div>
+                            <div class="tile web" onclick="openWebsite('https://www.reddit.com')">
+                                <div class="tile-icon">🗨️</div>
+                                <div class="tile-name">Reddit</div>
+                            </div>
+                            <div class="tile web" onclick="openWebsite('https://www.github.com')">
+                                <div class="tile-icon">💻</div>
+                                <div class="tile-name">GitHub</div>
+                            </div>
+                            <div class="tile web" onclick="openWebsite('https://www.netflix.com')">
+                                <div class="tile-icon">🎬</div>
+                                <div class="tile-name">Netflix</div>
+                            </div>
+                            <div class="tile web" onclick="openWebsite('https://www.twitter.com')">
+                                <div class="tile-icon">🐦</div>
+                                <div class="tile-name">Twitter</div>
+                            </div>
+                            <div class="tile web" onclick="openWebsite('https://www.amazon.com')">
+                                <div class="tile-icon">📦</div>
+                                <div class="tile-name">Amazon</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Minimized Windows Dock -->
@@ -1207,6 +1402,27 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Calendar Window -->
+        <div class="window" id="calendarWindow" style="top: 120px; left: 350px; width: 350px; height: 450px;">
+            <div class="window-header">
+                <div class="window-buttons">
+                    <div class="window-button close" onclick="closeWindow('calendar')"></div>
+                    <div class="window-button minimize" onclick="minimizeWindow('calendar')"></div>
+                    <div class="window-button maximize" onclick="maximizeWindow('calendar')"></div>
+                </div>
+                <div class="window-title">Calendar</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div style="flex: 1; padding: 16px; overflow: auto;">
+                <div class="calendar-header">
+                    <button class="calendar-nav" onclick="changeMonth(-1)">←</button>
+                    <div id="calendarMonthYear2" style="font-weight: 600; font-size: 16px;">January 2026</div>
+                    <button class="calendar-nav" onclick="changeMonth(1)">→</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid2" style="margin-top: 16px;"></div>
             </div>
         </div>
 
@@ -1552,11 +1768,14 @@
                 if (windowName === 'safari' && tabs.length === 0) {
                     createNewTab();
                 }
+                
+                if (windowName === 'calendar') {
+                    renderCalendar(true);
+                }
             } else {
                 const appMessages = {
                     'terminal': 'Opening default Terminal app...',
-                    'store': 'Opening default App Store...',
-                    'calendar': 'Opening default Calendar app...'
+                    'store': 'Opening default App Store...'
                 };
                 
                 if (appMessages[windowName]) {
@@ -1640,7 +1859,8 @@
                 safari: '🧭 Browser',
                 mail: '✉️ Mail',
                 photos: '🖼️ Photos',
-                music: '🎵 Music'
+                music: '🎵 Music',
+                calendar: '📅 Calendar'
             };
             
             minimizedWindows.forEach(windowName => {
@@ -1765,9 +1985,9 @@
         }
 
         // Calendar functions
-        function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            const monthYear = document.getElementById('calendarMonthYear');
+        function renderCalendar(isWindow = false) {
+            const grid = document.getElementById(isWindow ? 'calendarGrid2' : 'calendarGrid');
+            const monthYear = document.getElementById(isWindow ? 'calendarMonthYear2' : 'calendarMonthYear');
             
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
@@ -1820,8 +2040,53 @@
 
         function changeMonth(delta) {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
-            renderCalendar();
+            renderCalendar(false);
+            renderCalendar(true);
         }
+
+        // Fullscreen Start Menu functions
+        function toggleFullscreenStart() {
+            const menu = document.getElementById('fullscreenStart');
+            menu.classList.toggle('visible');
+        }
+
+        function openWindowFromFullscreen(windowName) {
+            toggleFullscreenStart();
+            openWindow(windowName);
+        }
+
+        function lockScreenFromFullscreen() {
+            toggleFullscreenStart();
+            lockScreen();
+        }
+
+        function openWebsite(url) {
+            toggleFullscreenStart();
+            openWindow('safari');
+            setTimeout(() => {
+                if (tabs.length === 0) {
+                    createNewTab();
+                }
+                navigateToUrl(url);
+            }, 100);
+        }
+
+        // Close fullscreen start when clicking outside
+        document.getElementById('fullscreenStart').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleFullscreenStart();
+            }
+        });
+
+        // Close fullscreen start with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const menu = document.getElementById('fullscreenStart');
+                if (menu.classList.contains('visible')) {
+                    toggleFullscreenStart();
+                }
+            }
+        });
 
         // Search functionality
         document.getElementById('searchBox').addEventListener('input', function(e) {
