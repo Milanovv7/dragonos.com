@@ -979,84 +979,142 @@
         /* Fullscreen Start Menu */
         .fullscreen-start {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(40px);
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            width: 650px;
+            height: 600px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(50px) saturate(180%);
+            border-radius: 12px;
             z-index: 500;
             display: none;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .fullscreen-start.visible {
             display: flex;
             opacity: 1;
+            transform: translateX(-50%) scale(1);
         }
 
-        .dark-mode .fullscreen-start {
-            background: rgba(20, 20, 20, 0.98);
+        body:not(.dark-mode) .fullscreen-start {
+            background: rgba(240, 240, 240, 0.85);
         }
 
         .fullscreen-start-content {
             display: flex;
             width: 100%;
             height: 100%;
+            gap: 16px;
+            padding: 20px;
         }
 
         .fullscreen-start-sidebar {
-            width: 80px;
-            background: rgba(0, 0, 0, 0.3);
+            width: 250px;
             display: flex;
             flex-direction: column;
+        }
+
+        .apps-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .app-list-item {
+            display: flex;
             align-items: center;
-            padding: 20px 0;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        body:not(.dark-mode) .app-list-item {
+            color: #1a1a1a;
+        }
+
+        .app-list-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        body:not(.dark-mode) .app-list-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .app-list-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .app-list-name {
+            font-size: 14px;
+        }
+
+        .sidebar-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        body:not(.dark-mode) .sidebar-bottom {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-icon {
-            width: 48px;
-            height: 48px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 6px;
             cursor: pointer;
-            border-radius: 8px;
             transition: background 0.2s;
             color: white;
-            margin-bottom: 12px;
+        }
+
+        body:not(.dark-mode) .sidebar-icon {
+            color: #1a1a1a;
         }
 
         .sidebar-icon:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
+        body:not(.dark-mode) .sidebar-icon:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
         .fullscreen-start-main {
             flex: 1;
-            padding: 60px 80px;
             overflow-y: auto;
-            color: white;
         }
 
         .tile-section {
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
 
         .tile-section-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 20px;
-            opacity: 0.9;
+            margin-bottom: 12px;
+            opacity: 0.8;
+            color: white;
+        }
+
+        body:not(.dark-mode) .tile-section-title {
+            color: #1a1a1a;
         }
 
         .tile-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 16px;
-            max-width: 1200px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
         }
 
         .tile {
@@ -1069,13 +1127,12 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
         }
 
         .tile:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         .tile:active {
@@ -1083,13 +1140,14 @@
         }
 
         .tile-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 36px;
+            margin-bottom: 8px;
         }
 
         .tile-name {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
+            color: white;
         }
 
         .tile.finder { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -1214,23 +1272,66 @@
 
         <!-- Dock -->
         <div class="dock">
+            <div class="dock-item" onclick="toggleFullscreenStart()" title="Start Menu" style="background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);">⊞</div>
             <div class="dock-item" onclick="openWindow('finder')" title="Finder">📁</div>
             <div class="dock-item" onclick="openWindow('safari')" title="Browser">🧭</div>
             <div class="dock-item" onclick="openWindow('mail')" title="Mail">✉️</div>
             <div class="dock-item" onclick="openWindow('photos')" title="Photos">🖼️</div>
             <div class="dock-item" onclick="openWindow('music')" title="Music">🎵</div>
-            <div class="dock-item" onclick="toggleFullscreenStart()" title="Start Menu" style="background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);">⊞</div>
         </div>
 
         <!-- Fullscreen Start Menu -->
         <div class="fullscreen-start" id="fullscreenStart">
             <div class="fullscreen-start-content">
                 <div class="fullscreen-start-sidebar">
-                    <div class="sidebar-icon" onclick="lockScreenFromFullscreen()" title="Lock">🔒</div>
+                    <div class="apps-list">
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('finder')">
+                            <div class="app-list-icon">📁</div>
+                            <div class="app-list-name">Finder</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('safari')">
+                            <div class="app-list-icon">🧭</div>
+                            <div class="app-list-name">Browser</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('mail')">
+                            <div class="app-list-icon">✉️</div>
+                            <div class="app-list-name">Mail</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('calendar')">
+                            <div class="app-list-icon">📅</div>
+                            <div class="app-list-name">Calendar</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('photos')">
+                            <div class="app-list-icon">🖼️</div>
+                            <div class="app-list-name">Photos</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('music')">
+                            <div class="app-list-icon">🎵</div>
+                            <div class="app-list-name">Music</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('settings')">
+                            <div class="app-list-icon">⚙️</div>
+                            <div class="app-list-name">Settings</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('terminal')">
+                            <div class="app-list-icon">⌨️</div>
+                            <div class="app-list-name">Terminal</div>
+                        </div>
+                        <div class="app-list-item" onclick="openWindowFromFullscreen('store')">
+                            <div class="app-list-icon">🛍️</div>
+                            <div class="app-list-name">App Store</div>
+                        </div>
+                    </div>
+                    <div class="sidebar-bottom">
+                        <div class="sidebar-icon" onclick="lockScreenFromFullscreen()">
+                            <div class="app-list-icon">🔒</div>
+                            <div class="app-list-name">Lock</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="fullscreen-start-main">
                     <div class="tile-section">
-                        <div class="tile-section-title">Apps</div>
+                        <div class="tile-section-title">Pinned</div>
                         <div class="tile-grid">
                             <div class="tile finder" onclick="openWindowFromFullscreen('finder')">
                                 <div class="tile-icon">📁</div>
@@ -2071,20 +2172,25 @@
             }, 100);
         }
 
-        // Close fullscreen start when clicking outside
-        document.getElementById('fullscreenStart').addEventListener('click', function(e) {
-            if (e.target === this) {
-                toggleFullscreenStart();
-            }
-        });
-
-        // Close fullscreen start with Escape key
+        // Close fullscreen start when pressing Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const menu = document.getElementById('fullscreenStart');
                 if (menu.classList.contains('visible')) {
                     toggleFullscreenStart();
                 }
+            }
+        });
+
+        // Close fullscreen start when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('fullscreenStart');
+            const startBtn = document.querySelector('.dock-item');
+            
+            if (menu.classList.contains('visible') && 
+                !menu.contains(e.target) && 
+                !startBtn.contains(e.target)) {
+                toggleFullscreenStart();
             }
         });
 
